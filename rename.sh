@@ -2,8 +2,11 @@
 
 if (( $# > 0 )); then
   echo "Genre: $1"
+  if (( ${#2} > 0 )); then
+    echo "Album: $2"
+  fi
 else
-  echo "Error. No genre specified."
+  echo "Error. At least a genre has to be specified."
   exit 1
 fi
 
@@ -45,7 +48,11 @@ for file2 in "${tagArray[@]}"; do
   title=${title//_/" "}
   echo "    Title: $title"
 
-  kid3-cli -c "set artist ${artist@Q}" -c "set title ${title@Q}" -c "set genre ${1@Q}" $file2
+  if (( ${#2} > 0 )); then
+    kid3-cli -c "set artist ${artist@Q}" -c "set title ${title@Q}" -c "set genre ${1@Q}" -c "set album ${2@Q}" $file2
+  else
+    kid3-cli -c "set artist ${artist@Q}" -c "set title ${title@Q}" -c "set genre ${1@Q}" $file2
+  fi
 done
 
 echo -e "\nCompleted."

@@ -13,3 +13,9 @@ NOTE: **ADDRESS** needs to be changed to an actual address to a video or playlis
 * Put the script **rename.sh** in the same directory as the downloaded mp3 files.  
 * Make the script executable.  
 * Run the script.
+## Arguments
+* -i  -  Input directory. Required.
+* -o  -  Output directory. Required.
+* -a  -  Album.
+* -y  -  Year.
+* -g  -  Genre.

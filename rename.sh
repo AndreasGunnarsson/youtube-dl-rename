@@ -1,32 +1,57 @@
 #!/bin/bash
 
-if (( $# > 0 )); then
-  echo "Genre: $1"
-  if (( ${#2} > 0 )); then
-    echo "Album: $2"
+while [ ! -z "$1" ]; do
+  if [[ "$1" == "-g" ]]; then
+    genre=$2
+    echo "Genre: $genre"
+    shift 1
+  elif [[ "$1" == "-a" ]]; then
+    album="$2"
+    echo "Album: $album"
+    shift 1
+  elif [[ $1 == "-y" ]]; then
+    year="$2"
+    echo "Year: $year"
+    shift 1
+  elif [[ $1 == "-i" ]]; then
+    input="$2"
+    echo "Input dir: $input"
+    shift 1
+  elif [[ $1 == "-o" ]]; then
+    output="$2"
+    echo "Output dir: $output"
+    shift 1
+  else
+    echo "Unknown argument: $1"
   fi
-else
-  echo "Error. At least a genre has to be specified."
+  shift 1
+done
+
+if [[ ! -d $input ]]; then
+  echo "Not a valid input directory. Exiting."
+  exit 1
+elif [[ ! -d $output ]]; then
+  echo "Not a valid output directory. Exiting."
   exit 1
 fi
 
-array=( * )
+array=( $input* )
 
 echo -e "\nRenaming files.."
 tagArray=()
 for file in "${array[@]}"; do
   if [[ -f $file ]]; then
-    echo "  Original filename: $file"
-    rename=$file
-    if [[ $file == *#NA#* ]]; then
+    echo "  Original filename: ${file#$input}"
+    rename=${file#$input}
+    if [[ $rename == *#NA#* ]]; then
       rename=${rename/"}}"}
       rename=${rename#*\{\{*}
-      mv "$file" "$rename"
+      cp "$file" "$output$rename"
       tagArray+=("$rename")
       echo "    Renamed: $rename"
-    elif [[ $file == *{{* && *}}* ]]; then
+    elif [[ $rename == *{{* && *}}* ]]; then
       rename=${rename/\{\{*\}\}/""}
-      mv "$file" "$rename"
+      cp "$file" "$output$rename"
       tagArray+=("$rename")
       echo "    Renamed: $rename"
     else
@@ -48,10 +73,15 @@ for file2 in "${tagArray[@]}"; do
   title=${title//_/" "}
   echo "    Title: $title"
 
-  if (( ${#2} > 0 )); then
-    kid3-cli -c "set artist ${artist@Q}" -c "set title ${title@Q}" -c "set genre ${1@Q}" -c "set album ${2@Q}" $file2
-  else
-    kid3-cli -c "set artist ${artist@Q}" -c "set title ${title@Q}" -c "set genre ${1@Q}" $file2
+  kid3-cli -c "set TPE1 ${artist@Q}" -c "set TIT2 ${title@Q}" $output$file2
+  if [ ! -z "$genre" ]; then
+    kid3-cli -c "set TCON ${genre@Q}" $output$file2
+  fi
+  if [ ! -z "$album" ]; then
+    kid3-cli -c "set TALB ${album@Q}" $output$file2
+  fi
+  if [ ! -z "$year" ]; then
+    kid3-cli -c "set TDRC ${year@Q}" $output$file2
   fi
 done
 
